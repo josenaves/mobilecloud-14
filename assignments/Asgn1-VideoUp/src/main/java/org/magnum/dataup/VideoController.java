@@ -17,7 +17,10 @@
  */
 package org.magnum.dataup;
 
-import java.util.List;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.magnum.dataup.model.Video;
 import org.springframework.stereotype.Controller;
@@ -29,7 +32,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 public class VideoController {
-
 	/**
 	 * You will need to create one or more Spring controllers to fulfill the
 	 * requirements of the assignment. If you use this file, please rename it
@@ -46,26 +48,29 @@ public class VideoController {
                                                                                                                                                                                                                                                                         
 	 * 
 	 */
+
+    private static final AtomicLong currentId = new AtomicLong(0L);
+	
+	private Map<Long,Video> videos = new HashMap<Long, Video>();
+	
 	
 	/*
-	
 	GET /video
 
-	Returns the list of videos that have been added to the server as JSON. The list of videos does not have to be persisted across restarts of the server. 
+	Returns the list of videos that have been added to the server as JSON. The list of videos does not have
+	to be persisted across restarts of the server.
+	 
 	The list of Video objects should be able to be unmarshalled by the client into a Collection.
 	
 	The return content-type should be application/json, which will be the default if you use @ResponseBody
-	
 	*/
 	@RequestMapping(value = "/video", method = RequestMethod.GET)
-	public @ResponseBody List<Video> getVideo(@RequestBody Video v) {
-		return null;
+	public @ResponseBody Collection<Video> getVideos(@RequestBody Video videoData) {
+		return videos.values();
 	}
-		
-	
+
 	
 	/*
-	
 	POST /video
 
 	The video metadata is provided as an application/json request body. The JSON should generate a valid instance of the Video class when 
@@ -82,18 +87,20 @@ public class VideoController {
 	The server should also generate a "data url" for the Video. The "data url" is the url of the binary data for a Video 
 	(e.g., the raw mpeg data). The URL should be the full URL for the video and not just the path (e.g., http://localhost:8080/video/1/data 
 	would be a valid data url). See the Hints section for some ideas on how to generate this URL.
-	
 	*/
 	@RequestMapping(value = "/video", method = RequestMethod.POST)
-	public @ResponseBody Video addVideo(@RequestBody Video v) {
-
-		return v;
+	public @ResponseBody Video addVideo(@RequestBody Video video) {
+		checkAndSetId(video);
+		videos.put(video.getId(), video);
+		return video;
 	}
 	
 	
-	
-	/*
+	private void checkAndSetId(Video video) {
+		video.setId(currentId.getAndIncrement());
+	}
 
+	/*
 	POST /video/{id}/data
 
 	The binary mpeg data for the video should be provided in a multipart request as a part with the key "data". The id in the path should be replaced
@@ -105,17 +112,13 @@ public class VideoController {
 	
 	Rather than a PUT request, a POST is used because, by default, Spring does not support a PUT with multipart data due to design decisions in the 
 	Commons File Upload library: https://issues.apache.org/jira/browse/FILEUPLOAD-197
-	
 	*/
-	@RequestMapping(value = "/video", method = RequestMethod.POST)
-	public @ResponseBody Video changeVideo(@PathVariable("id") String id,  @RequestBody Video v) {
-
-		return v;
+	@RequestMapping(value = "/video/{id}", method = RequestMethod.POST)
+	public @ResponseBody Video changeVideo(@PathVariable("id") long id, @RequestBody Video videoData) {
+		return videoData;
 	}
 	
-	
 	/*
-	
 	GET /video/{id}/data
 
 	Returns the binary mpeg data (if any) for the video with the given identifier. If no mpeg data has been uploaded for the specified video, 
@@ -123,7 +126,7 @@ public class VideoController {
 
 	*/
 	@RequestMapping(value = "/video/{id}/data", method = RequestMethod.GET)
-	public @ResponseBody Video getVideo(@PathVariable("id") String id) {
+	public @ResponseBody Video getVideoData(@PathVariable("id") long id) {
 		
 		return null;
 	}
