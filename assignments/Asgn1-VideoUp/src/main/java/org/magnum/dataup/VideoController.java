@@ -17,18 +17,28 @@
  */
 package org.magnum.dataup;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.magnum.dataup.model.Video;
+import org.magnum.dataup.model.VideoStatus;
+import org.magnum.dataup.model.VideoStatus.VideoState;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.multipart.MultipartFile;
 
 @Controller
 public class VideoController {
@@ -57,7 +67,7 @@ public class VideoController {
 	/*
 	GET /video
 
-	Returns the list of videos that have been added to the server as JSON. The list of videos does not have
+	Returns the LIST of videos that have been added to the server as JSON. The list of videos does not have
 	to be persisted across restarts of the server.
 	 
 	The list of Video objects should be able to be unmarshalled by the client into a Collection.
@@ -65,10 +75,10 @@ public class VideoController {
 	The return content-type should be application/json, which will be the default if you use @ResponseBody
 	*/
 	@RequestMapping(value = "/video", method = RequestMethod.GET)
-	public @ResponseBody Collection<Video> getVideos(@RequestBody Video videoData) {
+	public @ResponseBody Collection<Video> getVideos(Video videoData) throws NotFoundException {
+		if (videos.values().isEmpty()) throw new NotFoundException("There's no videos available.");
 		return videos.values();
 	}
-
 	
 	/*
 	POST /video
@@ -92,13 +102,10 @@ public class VideoController {
 	public @ResponseBody Video addVideo(@RequestBody Video video) {
 		checkAndSetId(video);
 		videos.put(video.getId(), video);
+		video.setDataUrl(getDataUrl(video.getId()));
 		return video;
 	}
-	
-	
-	private void checkAndSetId(Video video) {
-		video.setId(currentId.getAndIncrement());
-	}
+
 
 	/*
 	POST /video/{id}/data
@@ -113,9 +120,17 @@ public class VideoController {
 	Rather than a PUT request, a POST is used because, by default, Spring does not support a PUT with multipart data due to design decisions in the 
 	Commons File Upload library: https://issues.apache.org/jira/browse/FILEUPLOAD-197
 	*/
-	@RequestMapping(value = "/video/{id}", method = RequestMethod.POST)
-	public @ResponseBody Video changeVideo(@PathVariable("id") long id, @RequestBody Video videoData) {
-		return videoData;
+	@RequestMapping(value = "/video/{id}/data", method = RequestMethod.POST)
+	public @ResponseBody VideoStatus setVideoData(@PathVariable("id") long id, @RequestParam("data") MultipartFile file) throws NotFoundException, IOException {
+		// look up for the video
+		Video video = videos.get(id);
+		if (video == null) throw new NotFoundException("Cannot find video with id [" + id + "]");
+
+		// save binary data
+		saveSomeVideo(video, file);
+		
+		VideoStatus status = new VideoStatus(VideoState.READY); 
+		return status;
 	}
 	
 	/*
@@ -126,9 +141,46 @@ public class VideoController {
 
 	*/
 	@RequestMapping(value = "/video/{id}/data", method = RequestMethod.GET)
-	public @ResponseBody Video getVideoData(@PathVariable("id") long id) {
+	public @ResponseBody Video getVideoData(@PathVariable("id") long id, HttpServletResponse response)  throws NotFoundException, IOException {
+		// look up for the video
+		Video video = videos.get(id);
 		
-		return null;
+		if (video == null) throw new NotFoundException("Cannot find video with id [" + id + "]");
+		if (video.getDataUrl() == null) throw new NotFoundException("Cannot find mpeg data for video with id [" + id + "]");
+		
+		serveSomeVideo(video, response);
+
+		return video;
+	}
+	
+	/*
+	 * This will make an unique id for videos that has not has one.
+	 */
+	private void checkAndSetId(Video video) {
+		if (video.getId() == 0){
+			video.setId(currentId.incrementAndGet());
+		}
 	}
 
+	private void saveSomeVideo(Video video, MultipartFile videoData) throws IOException {
+		VideoFileManager.get().saveVideoData(video, videoData.getInputStream());
+	}
+	
+	private void serveSomeVideo(Video video, HttpServletResponse response) throws IOException {
+		VideoFileManager.get().copyVideoData(video, response.getOutputStream());
+	}
+	
+	private String getDataUrl(long videoId) {
+		return getUrlBaseForLocalServer() + "/video/" + videoId + "/data";
+	}
+
+	private String getUrlBaseForLocalServer() {
+		HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+		String base ="http://"
+				+ request.getServerName()
+				+ ((request.getServerPort() != 80) ? ":"
+				+ request.getServerPort() : "");
+		return base;
+	}	
+	
 }
