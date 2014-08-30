@@ -15,16 +15,20 @@
  * limitations under the License.
  * 
  */
-
 package org.magnum.mobilecloud.video;
 
+import java.util.Collection;
+
+import org.magnum.mobilecloud.video.repository.Video;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
-public class AnEmptyController {
+public class VideoController {
 	
 	/**
 	 * You will need to create one or more Spring controllers to fulfill the
@@ -42,10 +46,45 @@ public class AnEmptyController {
                                                                                                                                                                                                                                                                         
 	 * 
 	 */
+
+	@RequestMapping(value="/video", method=RequestMethod.GET)
+	public @ResponseBody Collection<Video> getVideoList() {
+		return null;
+	}
+
+	@RequestMapping(value="/video/{id}", method=RequestMethod.GET)
+	public @ResponseBody Video getVideoById(@RequestParam("id") long id) {
+		return null;
+	}
+
+	@RequestMapping(value="/video", method=RequestMethod.POST)
+	public @ResponseBody Video addVideo(@RequestBody Video v) {
+		return null;
+	}
+
+	@RequestMapping(value="/video/{id}/like", method=RequestMethod.POST)
+	public void likeVideo(@RequestParam("id") long id) {
+		
+	}
 	
-	@RequestMapping(value="/go",method=RequestMethod.GET)
-	public @ResponseBody String goodLuck(){
-		return "Good Luck!";
+	@RequestMapping(value="/video/{id}/unlike", method=RequestMethod.POST)
+	public void unlikeVideo(@RequestParam("id") long id) {
+
+	}
+	
+	@RequestMapping(value="/video/search/findByName", method=RequestMethod.GET)
+	public @ResponseBody Collection<Video> findByTitle(@RequestParam("title") String title) {
+		return null;
+	}
+	
+	@RequestMapping(value="/video/search/findByDurationLessThan", method=RequestMethod.GET)	
+	public @ResponseBody Collection<Video> findByDurationLessThan(@RequestParam("duration") long duration) {
+		return null;
+	}
+
+	@RequestMapping(value="/video/{id}/likedby", method=RequestMethod.GET)	
+	public @ResponseBody Collection<String> getUsersWhoLikedVideo(@RequestParam("id") long id) {
+		return null;
 	}
 	
 }
