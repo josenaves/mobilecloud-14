@@ -20,6 +20,8 @@ package org.magnum.mobilecloud.video;
 import java.util.Collection;
 
 import org.magnum.mobilecloud.video.repository.Video;
+import org.magnum.mobilecloud.video.repository.VideoRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,6 +31,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 public class VideoController {
+	
+	@Autowired
+	private VideoRepository repo;
 	
 	/**
 	 * You will need to create one or more Spring controllers to fulfill the

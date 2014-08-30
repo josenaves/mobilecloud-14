@@ -16,28 +16,28 @@ package org.magnum.mobilecloud.video.client;
  * @author jules
  *
  */
-public class SecuredRestException extends RuntimeException {
 
-	private static final long serialVersionUID = -3872838278232618576L;
+public class NotFoundException extends RuntimeException {
 
-	public SecuredRestException() {
+	private static final long serialVersionUID = 5929942402861379849L;
+
+	public NotFoundException() {
 		super();
 	}
 
-	public SecuredRestException(String message, Throwable cause,
-			boolean enableSuppression, boolean writableStackTrace) {
+	public NotFoundException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
 		super(message, cause, enableSuppression, writableStackTrace);
 	}
 
-	public SecuredRestException(String message, Throwable cause) {
+	public NotFoundException(String message, Throwable cause) {
 		super(message, cause);
 	}
 
-	public SecuredRestException(String message) {
+	public NotFoundException(String message) {
 		super(message);
 	}
 
-	public SecuredRestException(Throwable cause) {
+	public NotFoundException(Throwable cause) {
 		super(cause);
 	}
 
