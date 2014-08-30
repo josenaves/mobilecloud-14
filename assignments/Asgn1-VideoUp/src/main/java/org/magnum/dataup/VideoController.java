@@ -124,16 +124,15 @@ public class VideoController {
 	due to design decisions in the Commons File Upload library: https://issues.apache.org/jira/browse/FILEUPLOAD-197
 	*/
 	@RequestMapping(value = "/video/{id}/data", method = RequestMethod.POST)
-	public @ResponseBody VideoStatus setVideoData(@PathVariable("id") long id, @RequestParam("data") MultipartFile file) throws NotFoundException, IOException {
+	public @ResponseBody VideoStatus setVideoData(@PathVariable("id") long id, @RequestParam("data") MultipartFile videoData) throws NotFoundException, IOException {
 		// look up for the video
 		Video video = videos.get(id);
 		if (video == null) throw new NotFoundException("Cannot find video with id [" + id + "]");
 
 		// save binary data
-		saveSomeVideo(video, file);
+		saveSomeVideo(video, videoData);
 		
-		VideoStatus status = new VideoStatus(VideoState.READY); 
-		return status;
+		return new VideoStatus(VideoState.READY);
 	}
 	
 	/*
@@ -141,19 +140,16 @@ public class VideoController {
 
 	Returns the binary mpeg data (if any) for the video with the given identifier. If no mpeg data has been uploaded for the specified video, 
 	then the server should return a 404 status code.
-
 	*/
 	@RequestMapping(value = "/video/{id}/data", method = RequestMethod.GET)
-	public @ResponseBody Video getVideoData(@PathVariable("id") long id, HttpServletResponse response)  throws NotFoundException, IOException {
+	public void getVideoData(@PathVariable("id") long id, HttpServletResponse response)  throws NotFoundException, IOException {
 		// look up for the video
 		Video video = videos.get(id);
 		
 		if (video == null) throw new NotFoundException("Cannot find video with id [" + id + "]");
 		if (video.getDataUrl() == null) throw new NotFoundException("Cannot find mpeg data for video with id [" + id + "]");
 		
-        serveSomeVideo(video, response);
-
-		return video;
+		serveSomeVideo(video, response);
 	}
 	
 	/*
