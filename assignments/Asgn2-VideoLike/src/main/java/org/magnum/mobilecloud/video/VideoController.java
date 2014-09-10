@@ -54,7 +54,8 @@ public class VideoController {
 
 	@RequestMapping(value="/video", method=RequestMethod.GET)
 	public @ResponseBody Collection<Video> getVideoList() {
-		return null;
+		Collection<Video> videos = (Collection<Video>) repo.findAll();
+		return videos;
 	}
 
 	@RequestMapping(value="/video/{id}", method=RequestMethod.GET)
