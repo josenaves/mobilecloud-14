@@ -63,8 +63,12 @@ public class VideoController {
 	}
 
 	@RequestMapping(value="/video", method=RequestMethod.POST)
-	public @ResponseBody Video addVideo(@RequestBody Video v) {
-		return null;
+	public @ResponseBody Video addVideo(@RequestBody Video video) {
+		// new videos don't have likes
+		video.setLikes(0);
+		// persist the video
+		video = repo.save(video);
+		return video;
 	}
 
 	@RequestMapping(value="/video/{id}/like", method=RequestMethod.POST)
