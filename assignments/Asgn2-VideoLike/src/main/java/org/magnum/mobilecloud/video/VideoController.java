@@ -22,13 +22,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Set;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
+import javax.servlet.http.HttpServletResponse;
+
 import org.magnum.mobilecloud.video.exception.VideoNotFoundException;
 import org.magnum.mobilecloud.video.repository.Video;
 import org.magnum.mobilecloud.video.repository.VideoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -81,7 +82,7 @@ public class VideoController {
 	}
 
 	@RequestMapping(value="/video/{id}/like", method=RequestMethod.POST)
-	public void likeVideo(@RequestParam("id") long id, Principal principal, HttpResponse response) {
+	public void likeVideo(@PathVariable("id") long id, Principal principal, HttpServletResponse response) {
 		Video video = repo.findOne(id);
 		if (null == video) throw new VideoNotFoundException();
 		
@@ -93,7 +94,7 @@ public class VideoController {
 		// find if the user already liked the video
 		if (users.contains(user)) {
 			// Status code 400
-			response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
+			response.setStatus(org.springframework.http.HttpStatus.BAD_REQUEST.value());
 			return;
 		}
 		
@@ -105,7 +106,7 @@ public class VideoController {
 	}
 	
 	@RequestMapping(value="/video/{id}/unlike", method=RequestMethod.POST)
-	public void unlikeVideo(@RequestParam("id") long id) {
+	public void unlikeVideo(@PathVariable("id") long id) {
 	}
 
 	//@RequestMapping(value="/video/search/findByName?title={title}", method=RequestMethod.GET)
