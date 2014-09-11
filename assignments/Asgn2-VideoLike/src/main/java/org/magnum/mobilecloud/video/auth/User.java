@@ -15,8 +15,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 public class User implements UserDetails {
 
-	public static UserDetails create(String username, String password,
-			String...authorities) {
+	private static final long serialVersionUID = -7911209679890839062L;
+
+	public static UserDetails create(String username, String password, String...authorities) {
 		return new User(username, password, authorities);
 	}
 	
@@ -29,15 +30,13 @@ public class User implements UserDetails {
 		this(username, password, Collections.EMPTY_LIST);
 	}
 
-	private User(String username, String password,
-			String...authorities) {
+	private User(String username, String password, String...authorities) {
 		username_ = username;
 		password_ = password;
 		authorities_ = AuthorityUtils.createAuthorityList(authorities);
 	}
 
-	private User(String username, String password,
-			Collection<GrantedAuthority> authorities) {
+	private User(String username, String password, Collection<GrantedAuthority> authorities) {
 		super();
 		username_ = username;
 		password_ = password;

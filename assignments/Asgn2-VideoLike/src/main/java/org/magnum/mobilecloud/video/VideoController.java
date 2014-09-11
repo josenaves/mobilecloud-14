@@ -17,8 +17,14 @@
  */
 package org.magnum.mobilecloud.video;
 
+import java.security.Principal;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Set;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.magnum.mobilecloud.video.exception.VideoNotFoundException;
 import org.magnum.mobilecloud.video.repository.Video;
 import org.magnum.mobilecloud.video.repository.VideoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,7 +66,9 @@ public class VideoController {
 
 	@RequestMapping(value="/video/{id}", method=RequestMethod.GET)
 	public @ResponseBody Video getVideoById(@RequestParam("id") long id) {
-		return null;
+		Video video = repo.findOne(id);
+		if (null == video) throw new VideoNotFoundException();
+		return video;
 	}
 
 	@RequestMapping(value="/video", method=RequestMethod.POST)
@@ -73,23 +81,47 @@ public class VideoController {
 	}
 
 	@RequestMapping(value="/video/{id}/like", method=RequestMethod.POST)
-	public void likeVideo(@RequestParam("id") long id) {
+	public void likeVideo(@RequestParam("id") long id, Principal principal, HttpResponse response) {
+		Video video = repo.findOne(id);
+		if (null == video) throw new VideoNotFoundException();
 		
+		// get the user associated with this request
+		String user = principal.getName();
+		
+		Set<String> users = video.getLikesUsernames();
+		
+		// find if the user already liked the video
+		if (users.contains(user)) {
+			// Status code 400
+			response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
+			return;
+		}
+		
+		// add the user in the set
+		users.add(user);
+		video.setLikes(users.size());
+		
+		video = repo.save(video);
 	}
 	
 	@RequestMapping(value="/video/{id}/unlike", method=RequestMethod.POST)
 	public void unlikeVideo(@RequestParam("id") long id) {
-
 	}
-	
+
+	//@RequestMapping(value="/video/search/findByName?title={title}", method=RequestMethod.GET)
 	@RequestMapping(value="/video/search/findByName", method=RequestMethod.GET)
 	public @ResponseBody Collection<Video> findByTitle(@RequestParam("title") String title) {
-		return null;
+		Collection<Video> videos = (Collection<Video>) repo.findByName(title);
+		if (null == videos) videos = new ArrayList<Video>();
+		return videos;
 	}
 	
-	@RequestMapping(value="/video/search/findByDurationLessThan", method=RequestMethod.GET)	
+	//@RequestMapping(value="/video/search/findByDurationLessThan?duration={duration}", method=RequestMethod.GET)	
+	@RequestMapping(value="/video/search/findByDurationLessThan", method=RequestMethod.GET)
 	public @ResponseBody Collection<Video> findByDurationLessThan(@RequestParam("duration") long duration) {
-		return null;
+		Collection<Video> videos = (Collection<Video>) repo.findByDurationLessThan(duration);
+		if (null == videos) videos = new ArrayList<Video>();
+		return videos;
 	}
 
 	@RequestMapping(value="/video/{id}/likedby", method=RequestMethod.GET)	
