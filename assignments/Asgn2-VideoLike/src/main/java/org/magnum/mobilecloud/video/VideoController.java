@@ -149,7 +149,10 @@ public class VideoController {
 
 	@RequestMapping(value="/video/{id}/likedby", method=RequestMethod.GET)	
 	public @ResponseBody Collection<String> getUsersWhoLikedVideo(@PathVariable("id") long id) {
-		return null;
+		Video video = repo.findOne(id);
+		if (null == video) throw new VideoNotFoundException();
+		
+		return video.getLikesUsernames();
 	}
 	
 }
