@@ -66,7 +66,7 @@ public class VideoController {
 	}
 
 	@RequestMapping(value="/video/{id}", method=RequestMethod.GET)
-	public @ResponseBody Video getVideoById(@RequestParam("id") long id) {
+	public @ResponseBody Video getVideoById(@PathVariable("id") long id) {
 		Video video = repo.findOne(id);
 		if (null == video) throw new VideoNotFoundException();
 		return video;
@@ -100,13 +100,35 @@ public class VideoController {
 		
 		// add the user in the set
 		users.add(user);
+		video.setLikesUsernames(users);
 		video.setLikes(users.size());
 		
 		video = repo.save(video);
 	}
 	
 	@RequestMapping(value="/video/{id}/unlike", method=RequestMethod.POST)
-	public void unlikeVideo(@PathVariable("id") long id) {
+	public void unlikeVideo(@PathVariable("id") long id, Principal principal, HttpServletResponse response) {
+		Video video = repo.findOne(id);
+		if (null == video) throw new VideoNotFoundException();
+		
+		// get the user associated with this request
+		String user = principal.getName();
+		
+		Set<String> users = video.getLikesUsernames();
+		
+		// find if the user really liked the video
+		if (!users.contains(user)) {
+			// Status code 400
+			response.setStatus(org.springframework.http.HttpStatus.BAD_REQUEST.value());
+			return;
+		}
+		
+		// REMOVE the user in the set
+		users.remove(user);
+		video.setLikesUsernames(users);
+		video.setLikes(users.size());
+		
+		video = repo.save(video);
 	}
 
 	//@RequestMapping(value="/video/search/findByName?title={title}", method=RequestMethod.GET)
@@ -126,7 +148,7 @@ public class VideoController {
 	}
 
 	@RequestMapping(value="/video/{id}/likedby", method=RequestMethod.GET)	
-	public @ResponseBody Collection<String> getUsersWhoLikedVideo(@RequestParam("id") long id) {
+	public @ResponseBody Collection<String> getUsersWhoLikedVideo(@PathVariable("id") long id) {
 		return null;
 	}
 	
